@@ -1,0 +1,79 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "api_key_arrival": "Bus Arrival Info API Key",
+          "scan_interval": "Scan interval (seconds)"
+        },
+        "data_description": {
+          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do",
+          "scan_interval": "How often to refresh arrival info. Default: 180 seconds."
+        }
+      },
+      "reconfigure": {
+        "description": "Update the API key for this integration.",
+        "data": {
+          "api_key_arrival": "Bus Arrival Info API Key"
+        },
+        "data_description": {
+          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Integration",
+        "description": "The API key is no longer valid.",
+        "data": {
+          "api_key_arrival": "Bus Arrival Info API Key"
+        },
+        "data_description": {
+          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do"
+        }
+      }
+    },
+    "error": {
+      "auth": "API key is invalid.",
+      "connection": "Unable to connect to the server.",
+      "unknown": "Unknown error occurred."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "search_station": {
+        "description": "Search for a bus station by name.",
+        "data": {
+          "keyword": "Station name"
+        }
+      },
+      "select_station": {
+        "description": "Select a station from the search results.",
+        "data": {
+          "station": "Station"
+        }
+      },
+      "select_route": {
+        "description": "Select a route passing through the station.",
+        "data": {
+          "route": "Route"
+        }
+      }
+    },
+    "error": {
+      "no_results": "No results found. Please try a different keyword.",
+      "duplicate_monitor": "This monitor is already registered.",
+      "connection": "Unable to connect to the server.",
+      "no_routes": "No routes found for this station."
+    }
+  },
+  "exceptions": {
+    "authentication_failed": {
+      "message": "Authentication failed during data update."
+    },
+    "update_failed": {
+      "message": "Failed to update data from the server."
+    }
+  }
+}
