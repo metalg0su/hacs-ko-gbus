@@ -1,0 +1,11 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "extra-files": [
+        "custom_components/kr_gbus/manifest.json",
+        "pyproject.toml"
+      ]
+    }
+  }
+}
