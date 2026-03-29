@@ -11,7 +11,10 @@
 
 ## 설치
 
-HACS 커스텀 저장소에 `metalg0su/hacs-ko-gbus` 추가. 또는 `custom_components/kr_gbus` 직접 복사.
+- HA 인스턴스에 HACS 설치
+- 아래 뱃지를 눌러 HACS 커스텀 레포 등록
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=metalg0su&repository=hacs-ko-gbus&category=integration)
 
 ## 설정
 
@@ -27,15 +30,20 @@ HACS 커스텀 저장소에 `metalg0su/hacs-ko-gbus` 추가. 또는 `custom_comp
 
 ### 2. 통합 추가
 
-설정 > 기기 및 서비스 > 통합 추가 > **경기버스정보** > API 키 입력.
+- 설정 > 기기 및 서비스 > 통합구성요소 추가하기 > **경기버스정보** > API 키 입력
+- 기본 갱신값 180초 추천. 필요에 따라 조정 (API rate limit 주의)
+> 기본적으로 요일 타입을 확인하기 위한 구성요소 센서가 추가됨
 
-### 3. 모니터 등록
+### 3. 노선 모니터링 추가
 
-옵션 설정에서 정류장 검색 > 정류장 선택 > 노선 선택. 모니터 추가 시 반복.
+- 생성된 통합구성정보 진입
+- 옵션 (톱니바퀴) 눌러서 정류장 검색
+- 해당 정류장의 노선 선택
+- 정류장의 노선 한 개당 구성요소가 추가됨. 필요 시 반복
 
 ## 센서
 
-모니터당 아래 센서 생성.
+각 모니터 구성요소는 아래 센서를 생성함
 
 | 센서 | 설명 | 비고 |
 |------|------|------|
