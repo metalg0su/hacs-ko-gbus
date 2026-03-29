@@ -151,6 +151,7 @@ class GBusOptionsFlowHandler(OptionsFlowWithConfigEntry):
             CONF_MONITOR_STA_ORDER: str(selected_route.sta_order),
             "station_name": self._selected_station.station_name,
             "route_name": selected_route.route_name,
+            "route_dest_name": selected_route.route_dest_name,
         }
 
         # 중복 체크

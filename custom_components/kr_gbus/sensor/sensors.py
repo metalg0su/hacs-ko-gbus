@@ -23,12 +23,16 @@ from .descriptions import (
 
 def _make_device_info(monitor_key: MonitorKey, monitor: dict[str, str]) -> DeviceInfo:
     """모니터 키와 monitor dict로 DeviceInfo를 생성한다."""
-    station_id, route_id, _ = monitor_key
+    station_id, route_id, sta_order = monitor_key
     station_name = monitor.get("station_name", station_id)
     route_name = monitor.get("route_name", route_id)
+    route_dest_name = monitor.get("route_dest_name")
+    name = f"{station_name} / {route_name}"
+    if route_dest_name:
+        name = f"{station_name} / {route_name} → {route_dest_name}"
     return DeviceInfo(
-        identifiers={(DOMAIN, f"{station_id}_{route_id}")},
-        name=f"{station_name} / {route_name}",
+        identifiers={(DOMAIN, f"{station_id}_{route_id}_{sta_order}")},
+        name=name,
     )
 
 
@@ -60,6 +64,7 @@ class GBusArrivalSensor(GBusEntity, SensorEntity):
     ) -> None:
         super().__init__(coordinator, entity_description)
         self._monitor_key = monitor_key
+        self._route_dest_name = monitor.get("route_dest_name")
         self._attr_unique_id = _make_unique_id(coordinator, monitor_key, entity_description.key)
         self._attr_device_info = _make_device_info(monitor_key, monitor)
 
@@ -85,6 +90,13 @@ class GBusArrivalSensor(GBusEntity, SensorEntity):
         if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP and value is not None:
             return dt_util.now() + timedelta(minutes=value)
         return value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """진행방향(종점명)을 attribute로 노출."""
+        if self._route_dest_name:
+            return {"route_dest_name": self._route_dest_name}
+        return None
 
 
 class GBusRouteSensor(GBusEntity, SensorEntity):
