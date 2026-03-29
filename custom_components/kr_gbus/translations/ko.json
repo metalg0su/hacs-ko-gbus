@@ -7,7 +7,7 @@
           "scan_interval": "갱신 주기 (초)"
         },
         "data_description": {
-          "api_key_arrival": "아래 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요.\n- 버스도착정보: https://www.data.go.kr/data/15080346/openapi.do\n- 정류소 조회: https://www.data.go.kr/data/15080666/openapi.do\n- 버스노선 조회: https://www.data.go.kr/data/15080662/openapi.do",
+          "api_key_arrival": "공공데이터포털(data.go.kr)에서 버스도착정보, 정류소 조회, 버스노선 조회 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요. 자세한 내용은 README를 참고하세요.",
           "scan_interval": "도착정보를 갱신하는 주기입니다. 기본값 180초."
         }
       },
@@ -17,7 +17,7 @@
           "api_key_arrival": "버스도착정보 조회 API 키"
         },
         "data_description": {
-          "api_key_arrival": "아래 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요.\n- 버스도착정보: https://www.data.go.kr/data/15080346/openapi.do\n- 정류소 조회: https://www.data.go.kr/data/15080666/openapi.do\n- 버스노선 조회: https://www.data.go.kr/data/15080662/openapi.do"
+          "api_key_arrival": "공공데이터포털(data.go.kr)에서 버스도착정보, 정류소 조회, 버스노선 조회 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요. 자세한 내용은 README를 참고하세요."
         }
       },
       "reauth_confirm": {
@@ -27,7 +27,7 @@
           "api_key_arrival": "버스도착정보 조회 API 키"
         },
         "data_description": {
-          "api_key_arrival": "아래 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요.\n- 버스도착정보: https://www.data.go.kr/data/15080346/openapi.do\n- 정류소 조회: https://www.data.go.kr/data/15080666/openapi.do\n- 버스노선 조회: https://www.data.go.kr/data/15080662/openapi.do"
+          "api_key_arrival": "공공데이터포털(data.go.kr)에서 버스도착정보, 정류소 조회, 버스노선 조회 API를 모두 활용 신청한 뒤 발급받은 서비스 키를 입력하세요. 자세한 내용은 README를 참고하세요."
         }
       }
     },

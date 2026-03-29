@@ -7,7 +7,7 @@
           "scan_interval": "Scan interval (seconds)"
         },
         "data_description": {
-          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do",
+          "api_key_arrival": "Sign up for Bus Arrival, Station Info, and Bus Route APIs on data.go.kr, then enter your issued service key. See README for details.",
           "scan_interval": "How often to refresh arrival info. Default: 180 seconds."
         }
       },
@@ -17,7 +17,7 @@
           "api_key_arrival": "Bus Arrival Info API Key"
         },
         "data_description": {
-          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do"
+          "api_key_arrival": "Sign up for Bus Arrival, Station Info, and Bus Route APIs on data.go.kr, then enter your issued service key. See README for details."
         }
       },
       "reauth_confirm": {
@@ -27,7 +27,7 @@
           "api_key_arrival": "Bus Arrival Info API Key"
         },
         "data_description": {
-          "api_key_arrival": "Sign up for all APIs below and enter your issued service key.\n- Bus Arrival: https://www.data.go.kr/data/15080346/openapi.do\n- Station Info: https://www.data.go.kr/data/15080666/openapi.do\n- Bus Route: https://www.data.go.kr/data/15080662/openapi.do"
+          "api_key_arrival": "Sign up for Bus Arrival, Station Info, and Bus Route APIs on data.go.kr, then enter your issued service key. See README for details."
         }
       }
     },
