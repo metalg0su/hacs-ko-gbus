@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -46,6 +47,20 @@ def is_station_stopped(
     return True
 
 
+async def fetch_route_schedule(
+    client: "BusRouteApiClient",  # noqa: F821
+    route_id: str,
+) -> tuple[str, BusRouteInfoItem | None]:
+    """노선 스케줄을 1건 조회한다."""
+    try:
+        resp = await client.async_get_bus_route_info_item(route_id)
+        LOGGER.debug("노선 스케줄 로드: route_id=%s", route_id)
+        return route_id, resp.bus_route_info_item
+    except Exception:
+        LOGGER.warning("노선 스케줄 조회 실패: route_id=%s", route_id, exc_info=True)
+        return route_id, None
+
+
 class GBusDataUpdateCoordinator(TimestampDataUpdateCoordinator[GBusCoordinatorData]):
     """API 데이터 갱신을 관리하는 코디네이터."""
 
@@ -71,19 +86,14 @@ class GBusDataUpdateCoordinator(TimestampDataUpdateCoordinator[GBusCoordinatorDa
 
     async def _load_route_schedules(self, keys: list[MonitorKey]) -> None:
         """모니터링 중인 노선의 상세 정보를 1회 조회하여 캐싱한다."""
-        route_ids = {key[1] for key in keys}
         route_client = self.config_entry.runtime_data.route
+        new_ids = {key[1] for key in keys} - self._route_schedules.keys()
 
-        for route_id in route_ids:
-            if route_id in self._route_schedules:
-                continue
-            try:
-                resp = await route_client.async_get_bus_route_info_item(route_id)
-                self._route_schedules[route_id] = resp.bus_route_info_item
-                LOGGER.debug("노선 스케줄 로드: route_id=%s", route_id)
-            except Exception:
-                LOGGER.warning("노선 스케줄 조회 실패: route_id=%s", route_id, exc_info=True)
-                self._route_schedules[route_id] = None
+        results = await asyncio.gather(
+            *(fetch_route_schedule(route_client, rid) for rid in new_ids)
+        )
+        for route_id, info in results:
+            self._route_schedules[route_id] = info
 
         self._route_schedules_loaded = True
 
