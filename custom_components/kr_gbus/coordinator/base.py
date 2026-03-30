@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import TimestampDataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from ..api import GBusApiClientAuthenticationError, GBusApiClientError
@@ -46,7 +46,7 @@ def is_station_stopped(
     return True
 
 
-class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
+class GBusDataUpdateCoordinator(TimestampDataUpdateCoordinator[GBusCoordinatorData]):
     """API 데이터 갱신을 관리하는 코디네이터."""
 
     config_entry: "GBusConfigEntry"  # noqa: F821 - 순환참조 방지

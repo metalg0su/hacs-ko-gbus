@@ -88,7 +88,7 @@ class GBusArrivalSensor(GBusEntity, SensorEntity):
             return None
         value = self.entity_description.value_fn(item)
         if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP and value is not None:
-            return dt_util.now() + timedelta(minutes=value)
+            return self.coordinator.last_update_success_time + timedelta(minutes=value)
         return value
 
     @property
