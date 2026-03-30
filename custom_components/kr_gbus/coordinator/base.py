@@ -119,11 +119,11 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         all_skipped = True
 
         for station_id, station_keys in stations.items():
-            # 직전 응답에서 모든 노선이 운행종료면 스킵
+            # 직전 응답에서 모든 노선이 운행종료면 스킵 (이전 데이터 유지)
             if self._is_station_stopped(station_keys, prev_data):
                 LOGGER.debug("운행 종료 스킵: station_id=%s", station_id)
                 for key in station_keys:
-                    result[key] = None
+                    result[key] = prev_data[key]
                 continue
 
             all_skipped = False
