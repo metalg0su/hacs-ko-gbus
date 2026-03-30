@@ -4,8 +4,8 @@ from custom_components.kr_gbus.api.client.bus_arrival_client import BusArrivalIt
 from custom_components.kr_gbus.api.models import RouteFlag
 from custom_components.kr_gbus.coordinator.base import (
     GBusCoordinatorData,
-    GBusDataUpdateCoordinator,
     MonitorKey,
+    is_station_stopped,
 )
 
 
@@ -25,35 +25,31 @@ KEY_B: MonitorKey = ("100", "2", "2")
 
 def test_is_station_stopped_all_stopped():
     """모든 노선이 운행종료면 True."""
-    coord = GBusDataUpdateCoordinator.__new__(GBusDataUpdateCoordinator)
     prev: GBusCoordinatorData = {
         KEY_A: _make_arrival_item(RouteFlag.운행종료),
         KEY_B: _make_arrival_item(RouteFlag.운행종료, route_id=2),
     }
-    assert coord._is_station_stopped([KEY_A, KEY_B], prev) is True
+    assert is_station_stopped([KEY_A, KEY_B], prev) is True
 
 
 def test_is_station_stopped_one_running():
     """하나라도 운행중이면 False."""
-    coord = GBusDataUpdateCoordinator.__new__(GBusDataUpdateCoordinator)
     prev: GBusCoordinatorData = {
         KEY_A: _make_arrival_item(RouteFlag.운행종료),
         KEY_B: _make_arrival_item(RouteFlag.운행중, route_id=2),
     }
-    assert coord._is_station_stopped([KEY_A, KEY_B], prev) is False
+    assert is_station_stopped([KEY_A, KEY_B], prev) is False
 
 
 def test_is_station_stopped_none_item():
     """항목이 None이면 False (안전 처리)."""
-    coord = GBusDataUpdateCoordinator.__new__(GBusDataUpdateCoordinator)
     prev: GBusCoordinatorData = {KEY_A: None}
-    assert coord._is_station_stopped([KEY_A], prev) is False
+    assert is_station_stopped([KEY_A], prev) is False
 
 
 def test_is_station_stopped_no_prev_data():
     """이전 데이터 없으면 False."""
-    coord = GBusDataUpdateCoordinator.__new__(GBusDataUpdateCoordinator)
-    assert coord._is_station_stopped([KEY_A], None) is False
+    assert is_station_stopped([KEY_A], None) is False
 
 
 def test_stopped_data_preserved_across_skip():
@@ -62,17 +58,16 @@ def test_stopped_data_preserved_across_skip():
     이 테스트는 coordinator의 스킵 로직이 None 대신 prev_data를 유지하는지
     _is_station_stopped를 연속 호출하여 검증한다.
     """
-    coord = GBusDataUpdateCoordinator.__new__(GBusDataUpdateCoordinator)
     stopped_item = _make_arrival_item(RouteFlag.운행종료)
 
     # Cycle 1: API가 운행종료를 반환했다고 가정
     cycle1_data: GBusCoordinatorData = {KEY_A: stopped_item}
-    assert coord._is_station_stopped([KEY_A], cycle1_data) is True
+    assert is_station_stopped([KEY_A], cycle1_data) is True
 
     # Cycle 2: 스킵 시 prev_data[key]를 유지 (수정된 로직)
     cycle2_data: GBusCoordinatorData = {KEY_A: cycle1_data[KEY_A]}
-    assert coord._is_station_stopped([KEY_A], cycle2_data) is True
+    assert is_station_stopped([KEY_A], cycle2_data) is True
 
     # Cycle 3: 여전히 유지
     cycle3_data: GBusCoordinatorData = {KEY_A: cycle2_data[KEY_A]}
-    assert coord._is_station_stopped([KEY_A], cycle3_data) is True
+    assert is_station_stopped([KEY_A], cycle3_data) is True

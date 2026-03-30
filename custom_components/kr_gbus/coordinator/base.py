@@ -17,6 +17,22 @@ MonitorKey = tuple[str, str, str]
 GBusCoordinatorData = dict[MonitorKey, BusArrivalItem | None]
 
 
+def is_station_stopped(
+    station_keys: list[MonitorKey], prev_data: GBusCoordinatorData | None
+) -> bool:
+    """직전 응답 기준으로 정류장의 모든 노선이 운행 종료인지 판별한다.
+
+    직전 데이터가 없거나, 항목이 None이면 안전하게 False(호출 필요)를 반환한다.
+    """
+    if not prev_data:
+        return False
+    for key in station_keys:
+        item = prev_data.get(key)
+        if item is None or item.flag != RouteFlag.운행종료:
+            return False
+    return True
+
+
 class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
     """API 데이터 갱신을 관리하는 코디네이터."""
 
@@ -57,21 +73,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
                 self._route_schedules[route_id] = None
 
         self._route_schedules_loaded = True
-
-    def _is_station_stopped(
-        self, station_keys: list[MonitorKey], prev_data: GBusCoordinatorData | None
-    ) -> bool:
-        """직전 응답 기준으로 정류장의 모든 노선이 운행 종료인지 판별한다.
-
-        직전 데이터가 없거나, 항목이 None이면 안전하게 False(호출 필요)를 반환한다.
-        """
-        if not prev_data:
-            return False
-        for key in station_keys:
-            item = prev_data.get(key)
-            if item is None or item.flag != RouteFlag.운행종료:
-                return False
-        return True
 
     async def _fetch_station_arrivals(
         self, station_id: str, station_keys: list[MonitorKey],
@@ -124,7 +125,7 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         result: GBusCoordinatorData = {}
 
         for station_id, station_keys in stations.items():
-            if self._is_station_stopped(station_keys, prev_data):
+            if is_station_stopped(station_keys, prev_data):
                 LOGGER.debug("운행 종료 스킵: station_id=%s", station_id)
                 for key in station_keys:
                     result[key] = prev_data[key]
