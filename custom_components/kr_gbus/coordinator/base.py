@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.util import dt as dt_util
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from ..api import GBusApiClientAuthenticationError, GBusApiClientError
@@ -13,7 +10,6 @@ from ..api.client.bus_arrival_client import BusArrivalItem
 from ..api.client.bus_route_client import BusRouteInfoItem
 from ..api.models import RouteFlag
 from ..const import CONF_MONITORS, CONF_MONITOR_ROUTE_ID, CONF_MONITOR_STATION_ID, CONF_MONITOR_STA_ORDER, LOGGER
-from ..helpers import get_day_type, get_schedule_times
 
 MonitorKey = tuple[str, str, str]
 """(station_id, route_id, sta_order)"""
@@ -30,7 +26,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         super().__init__(*args, **kwargs)
         self._route_schedules: dict[str, BusRouteInfoItem | None] = {}
         self._route_schedules_loaded: bool = False
-        self._default_update_interval: timedelta | None = self.update_interval
 
     @property
     def route_schedules(self) -> dict[str, BusRouteInfoItem | None]:
@@ -78,24 +73,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
                 return False
         return True
 
-    def _get_next_resume_time(self, keys: list[MonitorKey], now: datetime) -> datetime | None:
-        """다음날 가장 이른 첫차 시간을 반환한다."""
-        tomorrow = now.date() + timedelta(days=1)
-        tomorrow_day_type = get_day_type(tomorrow)
-
-        earliest = None
-        for route_id in {key[1] for key in keys}:
-            info = self._route_schedules.get(route_id)
-            if info is None:
-                continue
-            first, _ = get_schedule_times(info, tomorrow_day_type)
-            if first is not None and (earliest is None or first < earliest):
-                earliest = first
-
-        if earliest is None:
-            return None
-        return datetime.combine(tomorrow, earliest)
-
     async def _fetch_station_arrivals(
         self, station_id: str, station_keys: list[MonitorKey],
     ) -> dict[MonitorKey, BusArrivalItem | None]:
@@ -137,7 +114,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         if not self._route_schedules_loaded:
             await self._load_route_schedules(keys)
 
-        now = dt_util.now()
         prev_data = self.data
 
         # station_id 기준 그룹핑 → 정류장당 API 1회 호출
@@ -146,7 +122,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
             stations.setdefault(key[0], []).append(key)
 
         result: GBusCoordinatorData = {}
-        all_skipped = True
 
         for station_id, station_keys in stations.items():
             if self._is_station_stopped(station_keys, prev_data):
@@ -155,22 +130,6 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
                     result[key] = prev_data[key]
                 continue
 
-            all_skipped = False
             result.update(await self._fetch_station_arrivals(station_id, station_keys))
-
-        # update_interval 동적 변경
-        if all_skipped and keys:
-            next_resume = self._get_next_resume_time(keys, now)
-            if next_resume:
-                sleep_duration = next_resume - now
-                self.update_interval = sleep_duration
-                LOGGER.info(
-                    "모든 노선 운행 종료. 다음 갱신: %s (%s 후)",
-                    next_resume.strftime("%Y-%m-%d %H:%M"),
-                    sleep_duration,
-                )
-        elif self.update_interval != self._default_update_interval:
-            self.update_interval = self._default_update_interval
-            LOGGER.info("운행 재개. 갱신 주기 복원: %s", self._default_update_interval)
 
         return result
