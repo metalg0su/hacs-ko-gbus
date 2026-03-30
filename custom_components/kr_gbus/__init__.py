@@ -12,6 +12,7 @@ from .const import (
     CONF_API_KEY_ARRIVAL,
     CONF_MONITORS,
     CONF_MONITOR_ROUTE_ID,
+    CONF_MONITOR_STA_ORDER,
     CONF_MONITOR_STATION_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL_SECONDS,
@@ -86,10 +87,10 @@ async def async_remove_config_entry_device(
     """디바이스 삭제 시 해당 모니터를 options에서 제거한다."""
     monitors = list(entry.options.get(CONF_MONITORS, []))
 
-    # device identifiers: {(DOMAIN, "{station_id}_{route_id}")}
+    # device identifiers: {(DOMAIN, "{station_id}_{route_id}_{sta_order}")}
     updated = [
         m for m in monitors
-        if (DOMAIN, f"{m[CONF_MONITOR_STATION_ID]}_{m[CONF_MONITOR_ROUTE_ID]}")
+        if (DOMAIN, f"{m[CONF_MONITOR_STATION_ID]}_{m[CONF_MONITOR_ROUTE_ID]}_{m[CONF_MONITOR_STA_ORDER]}")
         not in device_entry.identifiers
     ]
 
