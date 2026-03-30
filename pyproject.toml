@@ -1,6 +1,6 @@
 [project]
 name = "hacs-ko-gbus"
-version = "1.0.1"
+version = "1.1.0"
 description = "경기도 버스도착정보 HACS 커스텀 통합"
 readme = "README.md"
 requires-python = ">=3.13"
