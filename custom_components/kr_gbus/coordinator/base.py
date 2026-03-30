@@ -96,6 +96,37 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
             return None
         return datetime.combine(tomorrow, earliest)
 
+    async def _fetch_station_arrivals(
+        self, station_id: str, station_keys: list[MonitorKey],
+    ) -> dict[MonitorKey, BusArrivalItem | None]:
+        """정류장 1개의 도착정보를 조회하여 MonitorKey별로 매핑한다."""
+        arrival = self.config_entry.runtime_data.arrival
+
+        try:
+            response = await arrival.async_get_bus_arrival_list(station_id)
+        except GBusApiClientAuthenticationError as exception:
+            raise ConfigEntryAuthFailed(
+                translation_domain="kr_gbus",
+                translation_key="authentication_failed",
+            ) from exception
+        except GBusApiClientError as exception:
+            raise UpdateFailed(
+                translation_domain="kr_gbus",
+                translation_key="update_failed",
+            ) from exception
+
+        items_by_key: dict[MonitorKey, BusArrivalItem] = {}
+        if response.bus_arrival_list:
+            for item in response.bus_arrival_list:
+                item_key: MonitorKey = (
+                    str(item.station_id),
+                    str(item.route_id),
+                    str(item.sta_order),
+                )
+                items_by_key[item_key] = item
+
+        return {key: items_by_key.get(key) for key in station_keys}
+
     async def _async_update_data(self) -> GBusCoordinatorData:
         """API에서 도착정보를 가져온다."""
         keys = self._get_monitor_keys()
@@ -114,12 +145,10 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         for key in keys:
             stations.setdefault(key[0], []).append(key)
 
-        arrival = self.config_entry.runtime_data.arrival
         result: GBusCoordinatorData = {}
         all_skipped = True
 
         for station_id, station_keys in stations.items():
-            # 직전 응답에서 모든 노선이 운행종료면 스킵 (이전 데이터 유지)
             if self._is_station_stopped(station_keys, prev_data):
                 LOGGER.debug("운행 종료 스킵: station_id=%s", station_id)
                 for key in station_keys:
@@ -127,33 +156,7 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
                 continue
 
             all_skipped = False
-
-            try:
-                response = await arrival.async_get_bus_arrival_list(station_id)
-            except GBusApiClientAuthenticationError as exception:
-                raise ConfigEntryAuthFailed(
-                    translation_domain="kr_gbus",
-                    translation_key="authentication_failed",
-                ) from exception
-            except GBusApiClientError as exception:
-                raise UpdateFailed(
-                    translation_domain="kr_gbus",
-                    translation_key="update_failed",
-                ) from exception
-
-            # 응답을 (station_id, route_id, sta_order) 키로 인덱싱
-            items_by_key: dict[MonitorKey, BusArrivalItem] = {}
-            if response.bus_arrival_list:
-                for item in response.bus_arrival_list:
-                    item_key: MonitorKey = (
-                        str(item.station_id),
-                        str(item.route_id),
-                        str(item.sta_order),
-                    )
-                    items_by_key[item_key] = item
-
-            for key in station_keys:
-                result[key] = items_by_key.get(key)
+            result.update(await self._fetch_station_arrivals(station_id, station_keys))
 
         # update_interval 동적 변경
         if all_skipped and keys:
