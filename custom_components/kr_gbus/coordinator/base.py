@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from ..api import GBusApiClientAuthenticationError, GBusApiClientError
 from ..api.client.bus_arrival_client import BusArrivalItem
 from ..api.client.bus_route_client import BusRouteInfoItem
 from ..api.models import RouteFlag
 from ..const import CONF_MONITORS, CONF_MONITOR_ROUTE_ID, CONF_MONITOR_STATION_ID, CONF_MONITOR_STA_ORDER, LOGGER
+from ..helpers import get_day_type, get_schedule_times, is_operating
 
 MonitorKey = tuple[str, str, str]
 """(station_id, route_id, sta_order)"""
@@ -18,18 +22,27 @@ GBusCoordinatorData = dict[MonitorKey, BusArrivalItem | None]
 
 
 def is_station_stopped(
-    station_keys: list[MonitorKey], prev_data: GBusCoordinatorData | None
+    station_keys: list[MonitorKey],
+    prev_data: GBusCoordinatorData,
+    route_schedules: dict[str, BusRouteInfoItem | None],
+    now: datetime,
 ) -> bool:
-    """직전 응답 기준으로 정류장의 모든 노선이 운행 종료인지 판별한다.
-
-    직전 데이터가 없거나, 항목이 None이면 안전하게 False(호출 필요)를 반환한다.
-    """
-    if not prev_data:
-        return False
+    """운행 종료 상태이고 비운행 시간대이면 True."""
     for key in station_keys:
         item = prev_data.get(key)
         if item is None or item.flag != RouteFlag.운행종료:
             return False
+
+    route_ids = {key[1] for key in station_keys}
+    today_type = get_day_type(now.date())
+    for route_id in route_ids:
+        info = route_schedules.get(route_id)
+        if info is None:
+            return False
+        first, last = get_schedule_times(info, today_type)
+        if is_operating(first, last, now.time()):
+            return False
+
     return True
 
 
@@ -115,6 +128,7 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
         if not self._route_schedules_loaded:
             await self._load_route_schedules(keys)
 
+        now = dt_util.now()
         prev_data = self.data
 
         # station_id 기준 그룹핑 → 정류장당 API 1회 호출
@@ -124,8 +138,9 @@ class GBusDataUpdateCoordinator(DataUpdateCoordinator[GBusCoordinatorData]):
 
         result: GBusCoordinatorData = {}
 
+        is_data_ready: bool = prev_data and self._route_schedules_loaded
         for station_id, station_keys in stations.items():
-            if is_station_stopped(station_keys, prev_data):
+            if is_data_ready and is_station_stopped(station_keys, prev_data, self._route_schedules, now):
                 LOGGER.debug("운행 종료 스킵: station_id=%s", station_id)
                 for key in station_keys:
                     result[key] = prev_data[key]
